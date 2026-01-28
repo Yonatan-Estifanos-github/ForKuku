@@ -87,7 +87,7 @@ export default function GoogleEarthVideo() {
             {CAPTIONS[currentCaptionIndex].text.map((line, i) => (
               <h2 
                 key={i}
-                className="font-serif italic text-3xl md:text-5xl lg:text-7xl text-[#D4A845] mb-2 leading-tight drop-shadow-xl"
+                className="font-serif italic text-2xl md:text-4xl lg:text-5xl text-[#D4A845] mb-2 leading-tight drop-shadow-xl"
               >
                 {line}
               </h2>
