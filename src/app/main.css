@@ -1,0 +1,224 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  --font-inter: 'Inter', sans-serif;
+  --font-cormorant: 'Cormorant Garamond', serif;
+  --font-allura: 'Allura', cursive;
+  --color-dark-base: #0a0908;
+}
+
+html, body {
+  margin: 0;
+  padding: 0;
+  overflow-x: hidden;
+}
+
+body {
+  background-color: var(--color-dark-base);
+  color: #E8E4DF;
+  font-family: var(--font-inter), sans-serif;
+  min-height: 100vh;
+}
+
+h1, h2, h3, h4, h5, h6 {
+  font-family: var(--font-cormorant), serif;
+  color: #F5F2EE;
+}
+
+.script-font {
+  font-family: var(--font-allura), cursive;
+}
+
+/* ================================
+   FILM GRAIN OVERLAY
+   ================================ */
+.film-grain {
+  position: fixed;
+  inset: 0;
+  z-index: 50;
+  pointer-events: none;
+  opacity: 0.035;
+  mix-blend-mode: overlay;
+}
+
+.film-grain::before {
+  content: '';
+  position: absolute;
+  inset: -200%;
+  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)'/%3E%3C/svg%3E");
+  background-size: 256px 256px;
+  animation: grain 0.5s steps(1) infinite;
+}
+
+@keyframes grain {
+  0%, 100% { transform: translate(0, 0); }
+  10% { transform: translate(-2%, -2%); }
+  20% { transform: translate(2%, 2%); }
+  30% { transform: translate(-1%, 1%); }
+  40% { transform: translate(1%, -1%); }
+  50% { transform: translate(-2%, 2%); }
+  60% { transform: translate(2%, -2%); }
+  70% { transform: translate(0%, 2%); }
+  80% { transform: translate(-2%, 0%); }
+  90% { transform: translate(2%, 1%); }
+}
+
+/* ================================
+   SMOOTH SCROLL (Lenis)
+   ================================ */
+html.lenis, html.lenis body {
+  height: auto;
+}
+
+.lenis.lenis-smooth {
+  scroll-behavior: auto !important;
+}
+
+.lenis.lenis-smooth [data-lenis-prevent] {
+  overscroll-behavior: contain;
+}
+
+.lenis.lenis-stopped {
+  overflow: hidden;
+}
+
+/* ================================
+   PRELOADER - Hide Scrollbar & Components
+   ================================ */
+.preloader-active {
+  overflow: hidden !important;
+  height: 100vh !important;
+}
+
+.preloader-active::-webkit-scrollbar {
+  display: none !important;
+}
+
+html.preloader-active,
+html.preloader-active body {
+  overflow: hidden !important;
+  scrollbar-width: none !important;
+  -ms-overflow-style: none !important;
+}
+
+/* Hide the top-bar countdown during preloader */
+body.preloader-active .countdown-container {
+  opacity: 0 !important;
+  pointer-events: none;
+  transition: opacity 0.5s ease;
+}
+
+.lenis.lenis-smooth iframe {
+  pointer-events: none;
+}
+
+/* ================================
+   REACTIVE LIQUID GOLD SHIMMER
+   Mouse-driven metallic text effect
+   ================================ */
+
+/* Multi-stop metallic gold gradient */
+.gold-shimmer {
+  /* Rich metallic gradient: Bronze -> Gold -> Bright Pale Gold -> Bronze */
+  background: linear-gradient(
+    90deg,
+    #8B7355 0%,        /* Bronze */
+    #D4A845 25%,       /* Gold */
+    #FFFACD 50%,       /* Bright Pale Gold (LemonChiffon/Cornsilk feel) */
+    #D4A845 75%,       /* Gold */
+    #8B7355 100%       /* Bronze */
+  );
+  background-size: 200% auto;
+  /* Position responds to --mouse-x CSS variable */
+  background-position: calc(100% - var(--mouse-x, 50%) * 2) center;
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+  /* Smooth transition for fluid feel */
+  transition: background-position 0.1s ease-out;
+  /* Text shadow for depth */
+  filter: drop-shadow(0 2px 20px rgba(212, 168, 69, 0.3))
+          drop-shadow(0 4px 40px rgba(0, 0, 0, 0.5));
+}
+
+/* ================================
+   EDITORIAL MICRO-TYPOGRAPHY
+   High-fashion label styling
+   ================================ */
+
+.editorial-label {
+  font-weight: 300;
+  letter-spacing: 0.5em;
+  text-transform: uppercase;
+  text-shadow:
+    0 2px 10px rgba(0, 0, 0, 0.9),
+    0 4px 30px rgba(0, 0, 0, 0.6);
+}
+
+/* ================================
+   LUXURY REVEAL MASK
+   For cinematic text reveals
+   ================================ */
+
+.reveal-mask {
+  overflow: hidden;
+  display: block;
+}
+
+.reveal-mask > * {
+  display: block;
+}
+
+/* ================================
+   LUXURY LINE DECORATIONS
+   Animated divider lines
+   ================================ */
+
+.luxury-line {
+  height: 1px;
+  background: linear-gradient(
+    90deg,
+    transparent 0%,
+    rgba(212, 168, 69, 0.6) 50%,
+    transparent 100%
+  );
+  transform-origin: center;
+}
+
+.luxury-line-left {
+  background: linear-gradient(
+    90deg,
+    transparent 0%,
+    rgba(212, 168, 69, 0.5) 100%
+  );
+  transform-origin: right center;
+}
+
+.luxury-line-right {
+  background: linear-gradient(
+    90deg,
+    rgba(212, 168, 69, 0.5) 0%,
+    transparent 100%
+  );
+  transform-origin: left center;
+}
+
+/* ================================
+   AUDIO CONTROLLER - BAR DANCE
+   ================================ */
+@keyframes bar-dance {
+  0%, 100% { height: 2px; }
+  50% { height: 16px; }
+}
+
+.bar-playing {
+  animation: bar-dance 1s ease-in-out infinite;
+}
+
+/* Stagger animations for each bar */
+.bar-playing:nth-child(1) { animation-duration: 0.8s; animation-delay: 0.0s; }
+.bar-playing:nth-child(2) { animation-duration: 1.1s; animation-delay: 0.2s; }
+.bar-playing:nth-child(3) { animation-duration: 1.3s; animation-delay: 0.4s; }
+.bar-playing:nth-child(4) { animation-duration: 0.9s; animation-delay: 0.1s; }
