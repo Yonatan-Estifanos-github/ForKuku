@@ -100,7 +100,7 @@ async function sendEmail(
     }
 
     const { error: emailError } = await resend.emails.send({
-      from: 'Yonatan & Saron <wedding@send.theestifanos.com>',
+      from: 'Yonatan & Saron <wedding@theestifanos.com>',
       to: [email],
       subject,
       react: reactComponent,
