@@ -44,10 +44,10 @@ export const PhotoSaveTheDate = ({
 
           <Text style={paragraph}>Dear {guestName},</Text>
           <Text style={paragraph}>
-            With grateful hearts, we're excited to share that we'll be getting
+            With grateful hearts, we&apos;re excited to share that we&apos;ll be getting
             married. God has been so faithful in bringing our paths together, and
-            we're looking forward to beginning this next chapter surrounded by
-            the people we love. We hope you'll save the date and celebrate with
+            we&apos;re looking forward to beginning this next chapter surrounded by
+            the people we love. We hope you&apos;ll save the date and celebrate with
             us as we step into all that God has prepared.
           </Text>
 
