@@ -13,7 +13,7 @@ export default function Footer() {
   };
 
   return (
-    <footer className="relative w-full bg-[#0a0908] py-10 border-t border-[#D4A845]/20 flex flex-col items-center justify-center gap-6 z-20">
+    <footer className="relative w-full bg-[#0a0908] pt-10 pb-24 border-t border-[#D4A845]/20 flex flex-col items-center justify-center gap-6 z-20">
       
       {/* Return to Top Button */}
       <button 
