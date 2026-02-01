@@ -23,7 +23,9 @@ export default function JourneyGallery() {
       const viewportWidth = window.innerWidth;
       const overflow = trackWidth - viewportWidth;
       if (overflow > 0) {
-        setEndPercent(-(overflow / trackWidth) * 100);
+        // Smaller buffer on mobile to prevent over-scrolling
+        const buffer = viewportWidth < 768 ? 1.05 : 1.1;
+        setEndPercent(-((overflow * buffer) / trackWidth) * 100);
       }
     }
     measure();
@@ -39,8 +41,8 @@ export default function JourneyGallery() {
 
   return (
     <section id="story" ref={containerRef} className="relative h-[250vh] md:h-[300vh]">
-      {/* Sticky viewport */}
-      <div className="sticky top-0 h-screen overflow-hidden flex flex-col justify-center">
+      {/* Sticky viewport — dvh for mobile address bar, touch-pan-y for swipe */}
+      <div className="sticky top-0 h-[100dvh] overflow-hidden flex flex-col justify-center touch-pan-y">
         {/* Section header */}
         <div className="text-center mb-8 md:mb-12 px-4 z-10">
           <p className="font-sans text-[#D4A845]/60 uppercase tracking-[0.4em] text-xs mb-3">
