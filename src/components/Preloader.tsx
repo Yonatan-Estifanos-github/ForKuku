@@ -96,12 +96,14 @@ export default function Preloader({ onComplete }: PreloaderProps) {
           {PRELOADER_MESSAGE.slice(0, visibleCount).split('\n\n').map((paragraph, index, array) => (
             <span key={index}>
               {paragraph.split('').map((char, charIdx) => (
-                <span
+                <motion.span
                   key={charIdx}
-                  className="transition-opacity duration-300 opacity-100"
+                  initial={{ opacity: 0 }}
+                  animate={{ opacity: 1 }}
+                  transition={{ duration: 0.15 }}
                 >
                   {char}
-                </span>
+                </motion.span>
               ))}
               {index < array.length - 1 && <><br /><br /></>}
             </span>
