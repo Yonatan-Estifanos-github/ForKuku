@@ -26,7 +26,7 @@ interface PreloaderProps {
 }
 
 export default function Preloader({ onComplete }: PreloaderProps) {
-  const [displayedText, setDisplayedText] = useState('');
+  const [visibleCount, setVisibleCount] = useState(0);
   const [isTypingComplete, setIsTypingComplete] = useState(false);
   const [isFadingOut, setIsFadingOut] = useState(false);
   const { timeRemaining, mounted } = useCountdown();
@@ -44,21 +44,21 @@ export default function Preloader({ onComplete }: PreloaderProps) {
   useEffect(() => {
     const totalChars = PRELOADER_MESSAGE.length;
     const charDelay = TYPING_DURATION / totalChars;
-    let currentIndex = 0;
+    let currentCount = 0;
     let typingTimer: NodeJS.Timeout;
 
-    const typeNextChar = () => {
-      if (currentIndex < totalChars) {
-        setDisplayedText(PRELOADER_MESSAGE.slice(0, currentIndex + 1));
-        currentIndex++;
-        typingTimer = setTimeout(typeNextChar, charDelay);
+    const revealNextChar = () => {
+      if (currentCount < totalChars) {
+        currentCount++;
+        setVisibleCount(currentCount);
+        typingTimer = setTimeout(revealNextChar, charDelay);
       } else {
         setIsTypingComplete(true);
       }
     };
 
-    // Start typing after a brief pause
-    typingTimer = setTimeout(typeNextChar, 500);
+    // Start revealing after a brief pause
+    typingTimer = setTimeout(revealNextChar, 500);
 
     // Fade out and complete after total duration
     const fadeTimer = setTimeout(() => {
@@ -75,9 +75,6 @@ export default function Preloader({ onComplete }: PreloaderProps) {
       clearTimeout(completeTimer);
     };
   }, [onComplete]);
-
-  // Split text into paragraphs
-  const paragraphs = displayedText.split('\n\n');
 
   return (
     <motion.div
@@ -96,13 +93,18 @@ export default function Preloader({ onComplete }: PreloaderProps) {
       <div className="flex flex-col items-center max-w-[600px] px-8">
         {/* Typing Effect Message */}
         <p className="preloader-text font-serif italic text-xl sm:text-2xl text-[#D4A845] leading-relaxed text-center mb-12">
-          {paragraphs.map((paragraph, index) => (
-            <span key={index}>
-              {paragraph}
-              {index < paragraphs.length - 1 && <><br /><br /></>}
-            </span>
+          {PRELOADER_MESSAGE.split('').map((char, i) => (
+            char === '\n' ? (
+              <br key={i} />
+            ) : (
+              <span
+                key={i}
+                className={`transition-opacity duration-300 ${i < visibleCount ? 'opacity-100' : 'opacity-0'}`}
+              >
+                {char}
+              </span>
+            )
           ))}
-          <span className={`typewriter-cursor inline-block w-[2px] h-[1em] bg-[#D4A845] align-middle ml-1 animate-pulse ${isTypingComplete ? 'opacity-0' : ''}`} aria-hidden="true" />
         </p>
 
         {/* Central Countdown */}
