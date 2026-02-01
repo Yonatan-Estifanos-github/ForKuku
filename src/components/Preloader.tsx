@@ -93,17 +93,18 @@ export default function Preloader({ onComplete }: PreloaderProps) {
       <div className="flex flex-col items-center max-w-[600px] px-8">
         {/* Typing Effect Message */}
         <p className="preloader-text font-serif italic text-xl sm:text-2xl text-[#D4A845] leading-relaxed text-center mb-12">
-          {PRELOADER_MESSAGE.split('').map((char, i) => (
-            char === '\n' ? (
-              <br key={i} />
-            ) : (
-              <span
-                key={i}
-                className={`transition-opacity duration-300 ${i < visibleCount ? 'opacity-100' : 'opacity-0'}`}
-              >
-                {char}
-              </span>
-            )
+          {PRELOADER_MESSAGE.slice(0, visibleCount).split('\n\n').map((paragraph, index, array) => (
+            <span key={index}>
+              {paragraph.split('').map((char, charIdx) => (
+                <span
+                  key={charIdx}
+                  className="transition-opacity duration-300 opacity-100"
+                >
+                  {char}
+                </span>
+              ))}
+              {index < array.length - 1 && <><br /><br /></>}
+            </span>
           ))}
         </p>
 
