@@ -3,29 +3,32 @@
 import { motion } from 'framer-motion';
 
 const NAV_ITEMS = [
-  { label: 'Home', href: '#', icon: HomeIcon },
-  { label: 'Story', href: '#story', icon: BookIcon },
-  { label: 'Venue', href: '#venue', icon: MapPinIcon },
-  { label: 'RSVP', href: '#rsvp', icon: EnvelopeIcon },
+  { label: 'Home', href: '/', icon: HomeIcon },
+  { label: 'Story', href: '/#story', icon: BookIcon },
+  { label: 'Venue', href: '/#venue', icon: MapPinIcon },
+  { label: 'RSVP', href: '/#rsvp', icon: EnvelopeIcon },
   { label: 'Registry', href: '/registry', icon: GiftIcon },
 ];
 
 export default function FloatingNav() {
   const handleClick = (e: React.MouseEvent<HTMLAnchorElement>, href: string) => {
-    // Allow normal navigation for page links (not hash links)
-    if (!href.startsWith('#')) {
-      return;
-    }
+    // Check if we're on the home page
+    const isHomePage = window.location.pathname === '/';
 
-    e.preventDefault();
-    if (href === '#') {
-      window.scrollTo({ top: 0, behavior: 'smooth' });
-    } else {
-      const target = document.querySelector(href);
-      if (target) {
-        target.scrollIntoView({ behavior: 'smooth' });
+    // For home page with hash links, use smooth scrolling
+    if (isHomePage && (href === '/' || href.startsWith('/#'))) {
+      e.preventDefault();
+      if (href === '/') {
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+      } else {
+        const hash = href.replace('/', '');
+        const target = document.querySelector(hash);
+        if (target) {
+          target.scrollIntoView({ behavior: 'smooth' });
+        }
       }
     }
+    // For other pages, let the browser handle navigation normally
   };
 
   return (
