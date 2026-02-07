@@ -9,7 +9,7 @@ const NAV_ITEMS = [
   { label: 'Story', href: '/#story', icon: BookIcon, sectionId: 'story' },
   { label: 'Venue', href: '/#venue', icon: MapPinIcon, sectionId: 'venue' },
   { label: 'RSVP', href: '/#rsvp', icon: EnvelopeIcon, sectionId: 'rsvp' },
-  { label: 'Registry', href: '/registry', icon: GiftIcon, sectionId: null },
+  { label: 'Registry', href: '/#registry', icon: GiftIcon, sectionId: 'registry' },
 ];
 
 export default function FloatingNav() {
@@ -20,7 +20,7 @@ export default function FloatingNav() {
   useEffect(() => {
     if (pathname !== '/') return;
 
-    const sectionIds = ['home', 'story', 'venue', 'rsvp'];
+    const sectionIds = ['home', 'story', 'venue', 'rsvp', 'registry'];
     let observer: IntersectionObserver | null = null;
 
     // Small delay to ensure DOM is ready
@@ -53,10 +53,6 @@ export default function FloatingNav() {
   }, [pathname]);
 
   const isActive = (href: string, sectionId: string | null) => {
-    // Registry page - active when on /registry
-    if (href === '/registry') {
-      return pathname === '/registry';
-    }
     // On home page, check which section is active
     if (pathname === '/') {
       if (sectionId) {
