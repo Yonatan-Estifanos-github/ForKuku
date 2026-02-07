@@ -19,10 +19,19 @@ interface RegistryItem {
   is_favorite: boolean;
 }
 
+// Shipping address for gifts
+const SHIPPING_ADDRESS = {
+  line1: '474 Kelker St',
+  city: 'Oberlin',
+  state: 'PA',
+  zip: '17113',
+};
+
 export default function RegistryPage() {
   const [items, setItems] = useState<RegistryItem[]>([]);
   const [loading, setLoading] = useState(true);
   const [selectedCategory, setSelectedCategory] = useState<string>('All');
+  const [selectedItem, setSelectedItem] = useState<RegistryItem | null>(null);
 
   useEffect(() => {
     const fetchItems = async () => {
@@ -54,6 +63,23 @@ export default function RegistryPage() {
   // Separate available and purchased items
   const availableItems = filteredItems.filter(item => !item.is_purchased);
   const purchasedItems = filteredItems.filter(item => item.is_purchased);
+
+  const handleItemClick = (item: RegistryItem) => {
+    if (item.product_url) {
+      setSelectedItem(item);
+    }
+  };
+
+  const handleContinueToStore = () => {
+    if (selectedItem?.product_url) {
+      window.open(selectedItem.product_url, '_blank', 'noopener,noreferrer');
+      setSelectedItem(null);
+    }
+  };
+
+  const handleCloseModal = () => {
+    setSelectedItem(null);
+  };
 
   return (
     <main className="min-h-screen bg-luxury-black">
@@ -154,18 +180,16 @@ export default function RegistryPage() {
                       </div>
                     )}
 
-                    {/* Hover overlay with link */}
+                    {/* Hover overlay with button */}
                     {item.product_url && (
-                      <a
-                        href={item.product_url}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="absolute inset-0 bg-black/60 opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex items-center justify-center"
+                      <button
+                        onClick={() => handleItemClick(item)}
+                        className="absolute inset-0 bg-black/60 opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex items-center justify-center cursor-pointer"
                       >
                         <span className="px-6 py-2 border border-wedding-gold text-wedding-gold font-serif text-sm rounded hover:bg-wedding-gold hover:text-luxury-black transition-colors">
-                          View Item
+                          Purchase Gift
                         </span>
-                      </a>
+                      </button>
                     )}
                   </div>
 
@@ -234,6 +258,70 @@ export default function RegistryPage() {
           </div>
         </FadeIn>
       </Section>
+
+      {/* Shipping Address Modal */}
+      {selectedItem && (
+        <div
+          className="fixed inset-0 bg-black/80 backdrop-blur-sm flex items-center justify-center z-50 p-4"
+          onClick={handleCloseModal}
+        >
+          <div
+            className="bg-luxury-black border border-wedding-gold/30 rounded-2xl max-w-md w-full p-8 shadow-2xl"
+            onClick={(e) => e.stopPropagation()}
+          >
+            {/* Gift icon */}
+            <div className="flex justify-center mb-6">
+              <div className="w-16 h-16 rounded-full bg-wedding-gold/10 flex items-center justify-center">
+                <svg className="w-8 h-8 text-wedding-gold" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M12 8v13m0-13V6a2 2 0 112 2h-2zm0 0V5.5A2.5 2.5 0 109.5 8H12zm-7 4h14M5 12a2 2 0 110-4h14a2 2 0 110 4M5 12v7a2 2 0 002 2h10a2 2 0 002-2v-7" />
+                </svg>
+              </div>
+            </div>
+
+            {/* Title */}
+            <h3 className="font-serif text-2xl text-wedding-gold text-center mb-2">
+              Ship To Us
+            </h3>
+
+            {/* Item name */}
+            <p className="font-serif text-white/60 text-center text-sm mb-6">
+              {selectedItem.name}
+            </p>
+
+            {/* Address card */}
+            <div className="bg-white/5 border border-white/10 rounded-xl p-5 mb-6">
+              <p className="text-xs uppercase tracking-widest text-wedding-gold/70 mb-3">
+                Please ship to:
+              </p>
+              <p className="font-serif text-white text-lg leading-relaxed">
+                {SHIPPING_ADDRESS.line1}<br />
+                {SHIPPING_ADDRESS.city}, {SHIPPING_ADDRESS.state} {SHIPPING_ADDRESS.zip}
+              </p>
+            </div>
+
+            {/* Reminder */}
+            <p className="text-white/50 text-xs text-center mb-6">
+              When checking out, please use this address so your gift arrives at our home.
+            </p>
+
+            {/* Buttons */}
+            <div className="flex flex-col gap-3">
+              <button
+                onClick={handleContinueToStore}
+                className="w-full py-3 bg-wedding-gold text-luxury-black font-serif font-medium rounded-lg hover:bg-wedding-gold/90 transition-colors"
+              >
+                Continue to {selectedItem.store}
+              </button>
+              <button
+                onClick={handleCloseModal}
+                className="w-full py-3 border border-white/20 text-white/70 font-serif rounded-lg hover:border-white/40 hover:text-white transition-colors"
+              >
+                Cancel
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </main>
   );
 }
