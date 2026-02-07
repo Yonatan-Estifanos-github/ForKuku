@@ -168,7 +168,7 @@ export default function RegistryPage() {
             Registry
           </h1>
           <p className="font-serif text-white/70 text-center max-w-xl mx-auto mb-12">
-            Your presence at our wedding is the greatest gift of all. However, if you wish to honor us with a gift, here are some items we would love.
+            Sharing this day with you is the only gift we require. For those who have expressed an interest in offering a token of love, we have curated a collection of items for our future home.
           </p>
         </FadeIn>
 
@@ -395,7 +395,7 @@ export default function RegistryPage() {
 
                 {/* Signature */}
                 <p className="font-script text-wedding-gold/60 text-right text-lg mb-6 pr-4">
-                  — Saron & Yonatan
+                  — Yonatan & Saron
                 </p>
 
                 {/* Buttons */}
@@ -439,10 +439,10 @@ export default function RegistryPage() {
 
                 {/* Title */}
                 <h3 className="font-serif text-2xl text-wedding-gold text-center mb-2">
-                  You&apos;re Amazing!
+                  May We Thank You?
                 </h3>
                 <p className="font-serif text-white/60 text-center text-sm mb-6">
-                  Let us know who to thank when it arrives
+                  Kindly leave your details so we may express our gratitude properly.
                 </p>
 
                 {/* Form */}
@@ -492,7 +492,7 @@ export default function RegistryPage() {
                     disabled={submitting || !purchaserName.trim()}
                     className="w-full py-3 bg-wedding-gold text-luxury-black font-serif font-medium rounded-lg hover:bg-wedding-gold/90 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
                   >
-                    {submitting ? 'Saving...' : 'All Done!'}
+                    {submitting ? 'Saving...' : 'Confirm Gift'}
                   </button>
                   <button
                     onClick={() => setModalStep('shipping')}
@@ -523,7 +523,7 @@ export default function RegistryPage() {
 
                 {/* Message */}
                 <p className="font-serif text-white/70 text-center mb-8 leading-relaxed">
-                  We&apos;re so grateful for your generosity.<br />
+                  Thank you. We are honored by your generosity.<br />
                   <span className="text-white/50 text-sm">Can&apos;t wait to celebrate with you!</span>
                 </p>
 
@@ -549,7 +549,7 @@ export default function RegistryPage() {
 
                 {/* Signature */}
                 <p className="font-script text-wedding-gold/60 text-center text-xl mb-6">
-                  With love, Saron & Yonatan
+                  With love, Yonatan & Saron
                 </p>
 
                 {/* Close button */}
