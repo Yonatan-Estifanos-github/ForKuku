@@ -72,7 +72,7 @@ function LuxuryTextarea({
 // BUTTON
 // ============================================================================
 const btnClass =
-  'px-10 py-4 font-medium text-sm tracking-widest uppercase transition-all duration-300 bg-gradient-to-r from-wedding-gold to-wedding-gold/90 hover:from-wedding-gold/90 hover:to-wedding-gold text-white rounded shadow-lg shadow-wedding-gold/20 disabled:opacity-50 disabled:cursor-not-allowed';
+  'px-10 py-4 font-serif text-sm tracking-widest uppercase transition-all duration-300 bg-wedding-gold hover:bg-harvest-wheat text-luxury-black rounded disabled:opacity-50 disabled:cursor-not-allowed';
 
 // ============================================================================
 // SEARCH SCREEN
@@ -371,8 +371,8 @@ function FormScreen({
                       onClick={() => toggleGuest(idx, true)}
                       className={`px-4 py-2 text-xs tracking-widest uppercase border rounded-full transition-all duration-300 ${
                         guest.is_attending
-                          ? 'bg-gradient-to-r from-wedding-gold to-wedding-gold/90 text-white border-wedding-gold shadow-lg shadow-wedding-gold/20'
-                          : 'bg-transparent border-stone-700 text-stone-400 hover:border-wedding-gold/50'
+                          ? 'bg-wedding-gold text-luxury-black border-wedding-gold'
+                          : 'bg-transparent border-white/20 text-white/60 hover:border-wedding-gold/50 hover:text-wedding-gold'
                       }`}
                     >
                       Accept
@@ -382,8 +382,8 @@ function FormScreen({
                       onClick={() => toggleGuest(idx, false)}
                       className={`px-4 py-2 text-xs tracking-widest uppercase border rounded-full transition-all duration-300 ${
                         !guest.is_attending
-                          ? 'bg-gradient-to-r from-wedding-gold to-wedding-gold/90 text-white border-wedding-gold shadow-lg shadow-wedding-gold/20'
-                          : 'bg-transparent border-stone-700 text-stone-400 hover:border-wedding-gold/50'
+                          ? 'bg-wedding-gold text-luxury-black border-wedding-gold'
+                          : 'bg-transparent border-white/20 text-white/60 hover:border-wedding-gold/50 hover:text-wedding-gold'
                       }`}
                     >
                       Decline
