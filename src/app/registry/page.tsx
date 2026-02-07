@@ -5,6 +5,7 @@ import Section from '@/components/ui/Section';
 import FadeIn from '@/components/ui/FadeIn';
 import Link from 'next/link';
 import { supabase } from '@/lib/supabase';
+import Footer from '@/components/Footer';
 
 interface RegistryItem {
   id: number;
@@ -324,6 +325,8 @@ export default function RegistryPage() {
           </div>
         </FadeIn>
       </Section>
+
+      <Footer />
 
       {/* Multi-Step Gift Modal */}
       {selectedItem && (
