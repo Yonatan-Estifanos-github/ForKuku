@@ -7,10 +7,12 @@ import Section from '@/components/ui/Section';
 import Footer from '@/components/Footer';
 import FadeIn from '@/components/ui/FadeIn';
 import Link from 'next/link';
+import ScrollToRegistry from '@/components/ScrollToRegistry';
 
 export default function Home() {
   return (
     <main>
+      <ScrollToRegistry />
       <Section id="home">
         <Hero />
       </Section>
