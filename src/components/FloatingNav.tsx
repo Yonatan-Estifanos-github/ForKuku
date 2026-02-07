@@ -1,31 +1,92 @@
 'use client';
 
+import { usePathname } from 'next/navigation';
 import { motion } from 'framer-motion';
+import { useState, useEffect } from 'react';
 
 const NAV_ITEMS = [
-  { label: 'Home', href: '#', icon: HomeIcon },
-  { label: 'Story', href: '#story', icon: BookIcon },
-  { label: 'Venue', href: '#venue', icon: MapPinIcon },
-  { label: 'RSVP', href: '#rsvp', icon: EnvelopeIcon },
-  { label: 'Registry', href: '/registry', icon: GiftIcon },
+  { label: 'Home', href: '/', icon: HomeIcon, sectionId: 'home' },
+  { label: 'Story', href: '/#story', icon: BookIcon, sectionId: 'story' },
+  { label: 'Venue', href: '/#venue', icon: MapPinIcon, sectionId: 'venue' },
+  { label: 'RSVP', href: '/#rsvp', icon: EnvelopeIcon, sectionId: 'rsvp' },
+  { label: 'Registry', href: '/#registry', icon: GiftIcon, sectionId: 'registry' },
 ];
 
 export default function FloatingNav() {
-  const handleClick = (e: React.MouseEvent<HTMLAnchorElement>, href: string) => {
-    // Allow normal navigation for page links (not hash links)
-    if (!href.startsWith('#')) {
-      return;
-    }
+  const pathname = usePathname();
+  const [activeSection, setActiveSection] = useState<string>('home');
 
-    e.preventDefault();
-    if (href === '#') {
-      window.scrollTo({ top: 0, behavior: 'smooth' });
-    } else {
-      const target = document.querySelector(href);
-      if (target) {
-        target.scrollIntoView({ behavior: 'smooth' });
+  // Track which section is in view on the home page
+  useEffect(() => {
+    if (pathname !== '/') return;
+
+    const sectionIds = ['home', 'story', 'venue', 'rsvp', 'registry'];
+    let observer: IntersectionObserver | null = null;
+
+    // Small delay to ensure DOM is ready
+    const timer = setTimeout(() => {
+      observer = new IntersectionObserver(
+        (entries) => {
+          // Find the most visible section
+          const visible = entries.filter(e => e.isIntersecting);
+          if (visible.length > 0) {
+            // Pick the one with highest intersection ratio
+            const mostVisible = visible.reduce((a, b) =>
+              a.intersectionRatio > b.intersectionRatio ? a : b
+            );
+            setActiveSection(mostVisible.target.id);
+          }
+        },
+        { threshold: [0.1, 0.3, 0.5], rootMargin: '-10% 0px -40% 0px' }
+      );
+
+      sectionIds.forEach((id) => {
+        const el = document.getElementById(id);
+        if (el) observer?.observe(el);
+      });
+    }, 500);
+
+    return () => {
+      clearTimeout(timer);
+      observer?.disconnect();
+    };
+  }, [pathname]);
+
+  const isActive = (href: string, sectionId: string | null) => {
+    // On home page, check which section is active
+    if (pathname === '/') {
+      if (sectionId) {
+        return activeSection === sectionId;
       }
     }
+    return false;
+  };
+
+  const handleClick = (e: React.MouseEvent<HTMLAnchorElement>, href: string) => {
+    // Check if we're on the home page
+    const isHomePage = pathname === '/';
+
+    // For home page with hash links, use smooth scrolling
+    if (isHomePage && (href === '/' || href.startsWith('/#'))) {
+      if (href === '/') {
+        e.preventDefault();
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+      } else {
+        // Extract hash from "/#section" format
+        const hashIndex = href.indexOf('#');
+        if (hashIndex !== -1) {
+          const hash = href.substring(hashIndex);
+          const target = document.querySelector(hash);
+          if (target) {
+            e.preventDefault();
+            target.scrollIntoView({ behavior: 'smooth' });
+          }
+          // If target doesn't exist, let browser handle navigation normally
+          // This will reload the page with the hash, triggering any scroll behavior
+        }
+      }
+    }
+    // For other pages, let the browser handle navigation normally
   };
 
   return (
@@ -34,28 +95,41 @@ export default function FloatingNav() {
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 1, delay: 2.5, ease: 'easeOut' }}
       className="fixed bottom-0 left-0 right-0 z-50 flex justify-center pb-8 pb-[max(2rem,env(safe-area-inset-bottom))]"
+      aria-label="Main navigation"
     >
       <div className="flex items-center gap-1 sm:gap-4 rounded-full border border-white/10 bg-black/50 backdrop-blur-md px-3 sm:px-5 py-2 transition-all">
-        {NAV_ITEMS.map(({ label, href, icon: Icon }) => (
-          <a
-            key={label}
-            href={href}
-            onClick={(e) => handleClick(e, href)}
-            className="flex items-center gap-1.5 sm:gap-2 px-2 sm:px-3 py-1 rounded-full font-serif text-[10px] sm:text-sm text-white transition-colors duration-300 hover:text-[#D4A845]"
-          >
-            <Icon className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
-            <span>{label}</span>
-          </a>
-        ))}
+        {NAV_ITEMS.map(({ label, href, icon: Icon, sectionId }) => {
+          const active = isActive(href, sectionId);
+          return (
+            <a
+              key={label}
+              href={href}
+              onClick={(e) => handleClick(e, href)}
+              aria-current={active ? 'page' : undefined}
+              className={`flex items-center gap-1.5 sm:gap-2 px-2 sm:px-3 py-1 rounded-full font-serif text-[10px] sm:text-sm transition-colors duration-300 hover:text-[#D4A845] ${
+                active ? 'text-[#D4A845]' : 'text-white'
+              }`}
+            >
+              <Icon className="w-3.5 h-3.5 sm:w-4 sm:h-4" aria-hidden="true" />
+              <span>{label}</span>
+            </a>
+          );
+        })}
       </div>
     </motion.nav>
   );
 }
 
-function HomeIcon({ className }: { className?: string }) {
+interface IconProps {
+  className?: string;
+  'aria-hidden'?: boolean | 'true' | 'false';
+}
+
+function HomeIcon({ className, 'aria-hidden': ariaHidden }: IconProps) {
   return (
     <svg
       className={className}
+      aria-hidden={ariaHidden}
       viewBox="0 0 24 24"
       fill="none"
       stroke="currentColor"
@@ -69,10 +143,11 @@ function HomeIcon({ className }: { className?: string }) {
   );
 }
 
-function BookIcon({ className }: { className?: string }) {
+function BookIcon({ className, 'aria-hidden': ariaHidden }: IconProps) {
   return (
     <svg
       className={className}
+      aria-hidden={ariaHidden}
       viewBox="0 0 24 24"
       fill="none"
       stroke="currentColor"
@@ -88,10 +163,11 @@ function BookIcon({ className }: { className?: string }) {
   );
 }
 
-function MapPinIcon({ className }: { className?: string }) {
+function MapPinIcon({ className, 'aria-hidden': ariaHidden }: IconProps) {
   return (
     <svg
       className={className}
+      aria-hidden={ariaHidden}
       viewBox="0 0 24 24"
       fill="none"
       stroke="currentColor"
@@ -105,10 +181,11 @@ function MapPinIcon({ className }: { className?: string }) {
   );
 }
 
-function EnvelopeIcon({ className }: { className?: string }) {
+function EnvelopeIcon({ className, 'aria-hidden': ariaHidden }: IconProps) {
   return (
     <svg
       className={className}
+      aria-hidden={ariaHidden}
       viewBox="0 0 24 24"
       fill="none"
       stroke="currentColor"
@@ -122,10 +199,11 @@ function EnvelopeIcon({ className }: { className?: string }) {
   );
 }
 
-function GiftIcon({ className }: { className?: string }) {
+function GiftIcon({ className, 'aria-hidden': ariaHidden }: IconProps) {
   return (
     <svg
       className={className}
+      aria-hidden={ariaHidden}
       viewBox="0 0 24 24"
       fill="none"
       stroke="currentColor"

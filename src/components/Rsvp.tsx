@@ -1,20 +1,20 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useRef } from 'react';
 import { motion } from 'framer-motion';
 
 // ============================================================================
 // TYPES
 // ============================================================================
 interface Guest {
-  id: number;
+  id: string;
   name: string;
   is_attending: boolean;
   is_plus_one: boolean;
 }
 
 interface Party {
-  id: number;
+  id: string;
   party_name: string;
   status: string;
   has_responded: boolean;
@@ -31,7 +31,7 @@ function LuxuryInput({
 }: { label: string; id: string } & React.InputHTMLAttributes<HTMLInputElement>) {
   return (
     <div className="flex flex-col gap-2">
-      <label htmlFor={id} className="text-xs tracking-widest uppercase font-medium text-amber-500/80">
+      <label htmlFor={id} className="text-xs tracking-widest uppercase font-medium text-wedding-gold/80">
         {label}
       </label>
       <div className="luxury-input relative">
@@ -53,7 +53,7 @@ function LuxuryTextarea({
 }: { label: string; id: string } & React.TextareaHTMLAttributes<HTMLTextAreaElement>) {
   return (
     <div className="flex flex-col gap-2">
-      <label htmlFor={id} className="text-xs tracking-widest uppercase font-medium text-amber-500/80">
+      <label htmlFor={id} className="text-xs tracking-widest uppercase font-medium text-wedding-gold/80">
         {label}
       </label>
       <div className="luxury-input relative">
@@ -72,7 +72,7 @@ function LuxuryTextarea({
 // BUTTON
 // ============================================================================
 const btnClass =
-  'px-10 py-4 font-medium text-sm tracking-widest uppercase transition-all duration-300 bg-gradient-to-r from-amber-600 to-amber-700 hover:from-amber-500 hover:to-amber-600 text-white rounded shadow-lg shadow-amber-900/20 disabled:opacity-50 disabled:cursor-not-allowed';
+  'px-10 py-4 font-serif text-sm tracking-widest uppercase transition-all duration-300 bg-wedding-gold hover:bg-harvest-wheat text-luxury-black rounded disabled:opacity-50 disabled:cursor-not-allowed';
 
 // ============================================================================
 // SEARCH SCREEN
@@ -86,30 +86,62 @@ function SearchScreen({ onFound }: { onFound: (party: Party) => void }) {
     e.preventDefault();
     setError('');
 
-    if (!query.trim()) {
+    const trimmedQuery = query.trim();
+    if (!trimmedQuery) {
       setError('Please enter your name');
+      return;
+    }
+
+    if (trimmedQuery.length < 2) {
+      setError('Please enter at least 2 characters');
       return;
     }
 
     setIsLoading(true);
 
+    // Create abort controller with 15 second timeout
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => controller.abort(), 15000);
+
     try {
       const res = await fetch('/api/rsvp/search', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ name: query }),
+        body: JSON.stringify({ name: trimmedQuery }),
+        signal: controller.signal,
       });
 
+      clearTimeout(timeoutId);
       const data = await res.json();
 
       if (!res.ok) {
         throw new Error(data.error || 'Search failed');
       }
 
+      // Validate API response structure
+      if (!data || typeof data.id !== 'string' || typeof data.party_name !== 'string') {
+        throw new Error('Invalid response from server');
+      }
+      if (!Array.isArray(data.guests)) {
+        // Ensure guests is at least an empty array
+        data.guests = [];
+      }
+      if (typeof data.has_responded !== 'boolean') {
+        data.has_responded = false;
+      }
+
       onFound(data);
     } catch (err: unknown) {
+      clearTimeout(timeoutId);
       console.error(err);
-      const msg = err instanceof Error ? err.message : "We couldn't find your invitation. Please try a different spelling or contact the couple.";
+      let msg = "We couldn't find your invitation. Please try a different spelling or contact the couple.";
+      if (err instanceof Error) {
+        if (err.name === 'AbortError') {
+          msg = 'Request timed out. Please check your connection and try again.';
+        } else {
+          msg = err.message;
+        }
+      }
       setError(msg);
     } finally {
       setIsLoading(false);
@@ -170,6 +202,9 @@ function FormScreen({
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [submitError, setSubmitError] = useState('');
 
+  // Ref to prevent double-submission (synchronous check before React state updates)
+  const isSubmittingRef = useRef(false);
+
   const toggleGuest = (index: number, attending: boolean) => {
     setGuests((prev) =>
       prev.map((g, i) => (i === index ? { ...g, is_attending: attending } : g))
@@ -182,10 +217,60 @@ function FormScreen({
     );
   };
 
+  const validateForm = (): string | null => {
+    // Check for empty guest list
+    if (!guests || guests.length === 0) {
+      return 'No guests found for this party. Please contact the couple.';
+    }
+
+    // Email validation - stricter regex
+    // Requires: 2+ chars before @, 2+ chars domain, 2+ chars TLD
+    const email = contact.email.trim().toLowerCase();
+    const emailRegex = /^[a-z0-9._%+-]{2,}@[a-z0-9.-]{2,}\.[a-z]{2,}$/;
+    if (!email || !emailRegex.test(email)) {
+      return 'Please enter a valid email address';
+    }
+
+    // Phone validation (10-15 digits for domestic/international)
+    const phoneDigits = contact.phone.replace(/\D/g, '');
+    if (phoneDigits.length < 10 || phoneDigits.length > 15) {
+      return 'Please enter a valid phone number (10-15 digits)';
+    }
+
+    // Plus-one name validation: if attending, name is required
+    for (const guest of guests) {
+      if (guest.is_plus_one && guest.is_attending && !guest.name?.trim()) {
+        return 'Please enter a name for each attending guest';
+      }
+    }
+
+    return null;
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    setIsSubmitting(true);
+
+    // Synchronous check to prevent double-submission
+    if (isSubmittingRef.current) {
+      return;
+    }
+    isSubmittingRef.current = true;
+
     setSubmitError('');
+
+    // Validate form before submitting
+    const validationError = validateForm();
+    if (validationError) {
+      setSubmitError(validationError);
+      isSubmittingRef.current = false;
+      return;
+    }
+
+    setIsSubmitting(true);
+
+    // Create abort controller with 20 second timeout (longer for submission)
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => controller.abort(), 20000);
 
     try {
       const res = await fetch('/api/rsvp/submit', {
@@ -198,8 +283,10 @@ function FormScreen({
           message: contact.message,
           guests
         }),
+        signal: controller.signal,
       });
 
+      clearTimeout(timeoutId);
       const data = await res.json();
 
       if (!res.ok) {
@@ -208,11 +295,20 @@ function FormScreen({
 
       onSubmit();
     } catch (err: unknown) {
+      clearTimeout(timeoutId);
       console.error('RSVP Submit Error:', err);
-      const msg = err instanceof Error ? err.message : 'Failed to submit RSVP. Please try again.';
+      let msg = 'Failed to submit RSVP. Please try again.';
+      if (err instanceof Error) {
+        if (err.name === 'AbortError') {
+          msg = 'Request timed out. Please check your connection and try again.';
+        } else {
+          msg = err.message;
+        }
+      }
       setSubmitError(msg);
     } finally {
       setIsSubmitting(false);
+      isSubmittingRef.current = false;
     }
   };
 
@@ -231,7 +327,7 @@ function FormScreen({
 
       {/* Welcome Header */}
       <div className="text-center mb-10">
-        <p className="text-xs tracking-widest uppercase mb-2 text-amber-500/80">
+        <p className="text-xs tracking-widest uppercase mb-2 text-wedding-gold/80">
           You&apos;re Invited
         </p>
         <h3 className="font-display text-3xl md:text-4xl tracking-wide text-stone-200">
@@ -242,9 +338,21 @@ function FormScreen({
       <form onSubmit={handleSubmit}>
         {/* Guest List */}
         <div className="mb-10">
-          <p className="text-xs tracking-widest uppercase font-medium text-amber-500/80 mb-6">
+          <p className="text-xs tracking-widest uppercase font-medium text-wedding-gold/80 mb-6">
             Please respond for each guest
           </p>
+
+          {/* Empty guests message */}
+          {guests.length === 0 && (
+            <div className="text-center py-8 border border-white/10 rounded-lg">
+              <p className="font-serif text-stone-400 italic">
+                No guests found for this party.
+              </p>
+              <p className="font-serif text-stone-500 text-sm mt-2">
+                Please contact the couple if this seems incorrect.
+              </p>
+            </div>
+          )}
 
           <div className="flex flex-col gap-4">
             {guests.map((guest, idx) => (
@@ -263,8 +371,8 @@ function FormScreen({
                       onClick={() => toggleGuest(idx, true)}
                       className={`px-4 py-2 text-xs tracking-widest uppercase border rounded-full transition-all duration-300 ${
                         guest.is_attending
-                          ? 'bg-gradient-to-r from-amber-600 to-amber-700 text-white border-amber-600 shadow-lg shadow-amber-900/20'
-                          : 'bg-transparent border-stone-700 text-stone-400 hover:border-amber-500/50'
+                          ? 'bg-wedding-gold text-luxury-black border-wedding-gold'
+                          : 'bg-transparent border-white/20 text-white/60 hover:border-wedding-gold/50 hover:text-wedding-gold'
                       }`}
                     >
                       Accept
@@ -274,8 +382,8 @@ function FormScreen({
                       onClick={() => toggleGuest(idx, false)}
                       className={`px-4 py-2 text-xs tracking-widest uppercase border rounded-full transition-all duration-300 ${
                         !guest.is_attending
-                          ? 'bg-gradient-to-r from-amber-600 to-amber-700 text-white border-amber-600 shadow-lg shadow-amber-900/20'
-                          : 'bg-transparent border-stone-700 text-stone-400 hover:border-amber-500/50'
+                          ? 'bg-wedding-gold text-luxury-black border-wedding-gold'
+                          : 'bg-transparent border-white/20 text-white/60 hover:border-wedding-gold/50 hover:text-wedding-gold'
                       }`}
                     >
                       Decline
@@ -344,7 +452,7 @@ function FormScreen({
 
         {/* Submit */}
         <div className="flex justify-center">
-          <button type="submit" disabled={isSubmitting} className={btnClass}>
+          <button type="submit" disabled={isSubmitting || guests.length === 0} className={btnClass}>
             {isSubmitting ? 'Sending...' : 'Submit RSVP'}
           </button>
         </div>
@@ -360,8 +468,8 @@ function SuccessScreen({ partyName }: { partyName: string }) {
   return (
     <div className="text-center max-w-md">
       {/* Checkmark icon */}
-      <div className="w-20 h-20 rounded-full border border-amber-500/30 flex items-center justify-center mx-auto mb-8">
-        <svg className="w-10 h-10 text-amber-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+      <div className="w-20 h-20 rounded-full border border-wedding-gold/30 flex items-center justify-center mx-auto mb-8">
+        <svg className="w-10 h-10 text-wedding-gold" fill="none" stroke="currentColor" viewBox="0 0 24 24">
           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
         </svg>
       </div>
@@ -386,8 +494,8 @@ function SuccessScreen({ partyName }: { partyName: string }) {
 
         {/* Registry button - luxury gold-bordered style */}
         <a
-          href="/registry"
-          className="inline-block px-8 py-3 font-medium text-sm tracking-widest uppercase transition-all duration-300 border border-amber-500/50 text-amber-500 rounded hover:bg-amber-500/10 hover:border-amber-500"
+          href="/#registry"
+          className="inline-block px-8 py-3 font-medium text-sm tracking-widest uppercase transition-all duration-300 border border-wedding-gold/50 text-wedding-gold rounded hover:bg-wedding-gold/10 hover:border-wedding-gold"
         >
           View Registry
         </a>
@@ -402,8 +510,8 @@ function SuccessScreen({ partyName }: { partyName: string }) {
 function AlreadyRespondedScreen({ partyName }: { partyName: string }) {
   return (
     <div className="text-center max-w-md">
-      <div className="w-20 h-20 rounded-full border border-amber-500/30 flex items-center justify-center mx-auto mb-8">
-        <svg className="w-10 h-10 text-amber-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+      <div className="w-20 h-20 rounded-full border border-wedding-gold/30 flex items-center justify-center mx-auto mb-8">
+        <svg className="w-10 h-10 text-wedding-gold" fill="none" stroke="currentColor" viewBox="0 0 24 24">
           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
         </svg>
       </div>
@@ -424,8 +532,8 @@ function AlreadyRespondedScreen({ partyName }: { partyName: string }) {
         </p>
 
         <a
-          href="/registry"
-          className="inline-block px-8 py-3 font-medium text-sm tracking-widest uppercase transition-all duration-300 border border-amber-500/50 text-amber-500 rounded hover:bg-amber-500/10 hover:border-amber-500"
+          href="/#registry"
+          className="inline-block px-8 py-3 font-medium text-sm tracking-widest uppercase transition-all duration-300 border border-wedding-gold/50 text-wedding-gold rounded hover:bg-wedding-gold/10 hover:border-wedding-gold"
         >
           View Registry
         </a>
@@ -457,7 +565,7 @@ export default function Rsvp() {
           {/* Content sits above the noise pseudo-element */}
           <div className="relative z-10 flex flex-col items-center w-full">
             {/* Header */}
-            <h2 className="font-display text-6xl tracking-wide mb-4 text-amber-500">
+            <h2 className="font-display text-6xl tracking-wide mb-4 text-wedding-gold">
               RSVP
             </h2>
             <p className="font-serif italic text-base md:text-lg tracking-wide mb-12 text-stone-400">
