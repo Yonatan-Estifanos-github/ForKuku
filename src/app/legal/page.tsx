@@ -82,7 +82,7 @@ export default function LegalPage() {
         {/* Footer Link */}
         <footer className="pt-12 text-center">
           <Link 
-            href="/login"
+            href="/"
             className="text-xs uppercase tracking-widest text-[#D4A845]/60 hover:text-[#D4A845] transition-colors duration-300"
           >
             ← Back to Invitation
