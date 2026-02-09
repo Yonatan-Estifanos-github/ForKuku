@@ -1,6 +1,6 @@
 'use client';
 
-import { useRef, useState, useMemo, useEffect, Suspense } from 'react';
+import { useRef, useState, useEffect, Suspense } from 'react';
 import { Canvas, useFrame, useThree } from '@react-three/fiber';
 import { Html, ContactShadows } from '@react-three/drei';
 import { animated, useSpring } from '@react-spring/three';
@@ -31,15 +31,15 @@ function SealParticles({ active }: { active: boolean }) {
   const pointsRef = useRef<THREE.Points>(null!);
   const particleCount = 24;
 
-  const positions = useMemo(() => {
-    const pos = new Float32Array(particleCount * 3);
+  const [positions] = useState(() => new Float32Array(particleCount * 3));
+
+  useEffect(() => {
     for (let i = 0; i < particleCount; i++) {
-      pos[i * 3] = (Math.random() - 0.5) * 0.25;
-      pos[i * 3 + 1] = (Math.random() - 0.5) * 0.25;
-      pos[i * 3 + 2] = Math.random() * 0.15;
+      positions[i * 3] = (Math.random() - 0.5) * 0.25;
+      positions[i * 3 + 1] = (Math.random() - 0.5) * 0.25;
+      positions[i * 3 + 2] = Math.random() * 0.15;
     }
-    return pos;
-  }, []);
+  }, [positions]);
 
   useFrame((state) => {
     if (!active || !pointsRef.current) return;
@@ -96,8 +96,9 @@ function ShatterPieces({ active }: { active: boolean }) {
   const groupRef = useRef<THREE.Group>(null!);
   const piecesRef = useRef<ShatterPiece[]>([]);
   const [opacity, setOpacity] = useState(1);
+  const [initialized, setInitialized] = useState(false);
 
-  useMemo(() => {
+  useEffect(() => {
     piecesRef.current = Array.from({ length: 6 }, (_, i) => ({
       id: i,
       position: new THREE.Vector3(0, 0, 0),
@@ -118,10 +119,11 @@ function ShatterPieces({ active }: { active: boolean }) {
       ),
       scale: 0.04 + Math.random() * 0.06,
     }));
+    setInitialized(true);
   }, []);
 
   useFrame((_, delta) => {
-    if (!active || !groupRef.current) return;
+    if (!active || !groupRef.current || !initialized) return;
 
     groupRef.current.children.forEach((child, i) => {
       const piece = piecesRef.current[i];
@@ -141,7 +143,7 @@ function ShatterPieces({ active }: { active: boolean }) {
     setOpacity((prev) => Math.max(0, prev - delta * 0.6));
   });
 
-  if (!active) return null;
+  if (!active || !initialized) return null;
 
   return (
     <group ref={groupRef} position={[0, 0.32, 0.42]}>
