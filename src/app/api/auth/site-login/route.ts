@@ -3,7 +3,7 @@ import { NextResponse } from 'next/server';
 export async function POST(request: Request) {
   try {
     const { password } = await request.json();
-    const sitePassword = process.env.NEXT_PUBLIC_SITE_PASSWORD;
+    const sitePassword = process.env.SITE_PASSWORD;
 
     // Check if site password is configured
     if (!sitePassword) {

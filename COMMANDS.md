@@ -12,7 +12,7 @@
   - `SUPABASE_SERVICE_ROLE_KEY` (Critical for Admin API)
   - `RESEND_API_KEY` (Email)
   - `TWILIO_ACCOUNT_SID` / `TWILIO_AUTH_TOKEN` (SMS)
-  - `NEXT_PUBLIC_SITE_PASSWORD` (Middleware protection)
+  - `SITE_PASSWORD` (Middleware protection)
 
 ## MCP Setup (Verified)
 
