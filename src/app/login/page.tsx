@@ -1,6 +1,7 @@
 'use client';
 
 import { useState } from 'react';
+import Link from 'next/link';
 
 export default function SiteLoginPage() {
   const [password, setPassword] = useState('');
@@ -81,8 +82,14 @@ export default function SiteLoginPage() {
         </form>
 
         {/* Decorative bottom accent */}
-        <div className="mt-10 flex justify-center">
+        <div className="mt-10 flex flex-col items-center gap-6">
           <div className="h-px w-24 bg-gradient-to-r from-transparent via-[#D4A845]/50 to-transparent" />
+          <Link 
+            href="/legal" 
+            className="text-[10px] text-[#E6D2B5]/20 hover:text-[#D4A845] transition-colors tracking-widest uppercase"
+          >
+            Privacy Policy & Terms
+          </Link>
         </div>
       </div>
     </div>

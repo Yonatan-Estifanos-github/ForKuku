@@ -1,7 +1,10 @@
 import { NextResponse } from 'next/server';
-import type { NextRequest } from 'next/server';
 
-export function middleware(request: NextRequest) {
+export function middleware() {
+  // Disable password protection for carrier verification process
+  return NextResponse.next();
+
+  /*
   const { pathname } = request.nextUrl;
 
   // Paths to exclude from password protection
@@ -11,6 +14,7 @@ export function middleware(request: NextRequest) {
     '/static',
     '/login',
     '/admin',
+    '/legal',
     '/favicon.ico',
     '/images',
     '/audio',
@@ -27,7 +31,7 @@ export function middleware(request: NextRequest) {
   }
 
   // Check for the site access token cookie
-  const sitePassword = process.env.NEXT_PUBLIC_SITE_PASSWORD;
+  const sitePassword = process.env.SITE_PASSWORD;
   const accessToken = request.cookies.get('site-access-token')?.value;
 
   // If no password is set, allow access (development fallback)
@@ -43,6 +47,7 @@ export function middleware(request: NextRequest) {
   // Redirect to login page
   const loginUrl = new URL('/login', request.url);
   return NextResponse.redirect(loginUrl);
+  */
 }
 
 export const config = {

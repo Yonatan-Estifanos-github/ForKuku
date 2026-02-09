@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useRef } from 'react';
+import Link from 'next/link';
 import { motion } from 'framer-motion';
 
 // ============================================================================
@@ -87,6 +88,23 @@ function SearchScreen({ onFound }: { onFound: (party: Party) => void }) {
     setError('');
 
     const trimmedQuery = query.trim();
+    const lowercaseQuery = trimmedQuery.toLowerCase();
+
+    // Magic Search for Carrier Verification
+    if (lowercaseQuery === 'carrier test' || lowercaseQuery === 'twilio test') {
+      onFound({
+        id: 'mock-id-verification',
+        party_name: 'Carrier Verification',
+        status: 'pending',
+        has_responded: false,
+        guests: [
+          { id: 'mock-1', name: 'Reviewer One', is_attending: false, is_plus_one: false },
+          { id: 'mock-2', name: 'Reviewer Two', is_attending: false, is_plus_one: false }
+        ]
+      });
+      return;
+    }
+
     if (!trimmedQuery) {
       setError('Please enter your name');
       return;
@@ -199,6 +217,7 @@ function FormScreen({
     party.guests.map((g) => ({ ...g }))
   );
   const [contact, setContact] = useState({ email: '', phone: '', message: '' });
+  const [smsConsent, setSmsConsent] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [submitError, setSubmitError] = useState('');
 
@@ -235,6 +254,11 @@ function FormScreen({
     const phoneDigits = contact.phone.replace(/\D/g, '');
     if (phoneDigits.length < 10 || phoneDigits.length > 15) {
       return 'Please enter a valid phone number (10-15 digits)';
+    }
+
+    // SMS Consent validation
+    if (!smsConsent) {
+      return 'Please consent to receive updates to complete your RSVP.';
     }
 
     // Plus-one name validation: if attending, name is required
@@ -431,6 +455,27 @@ function FormScreen({
           />
         </div>
 
+        {/* SMS Consent */}
+        <div className="mb-8 flex items-start gap-3 bg-white/5 p-4 rounded-lg border border-white/5">
+          <input
+            type="checkbox"
+            id="sms-consent"
+            checked={smsConsent}
+            onChange={(e) => setSmsConsent(e.target.checked)}
+            className="mt-1 w-4 h-4 rounded border-white/20 bg-transparent text-wedding-gold focus:ring-wedding-gold focus:ring-offset-0"
+          />
+          <label htmlFor="sms-consent" className="text-xs leading-relaxed text-stone-400 font-sans tracking-wide cursor-pointer">
+            I consent to receive text messages regarding the wedding and future family updates. 
+            Msg & data rates may apply. Reply STOP to opt out.
+            <Link 
+              href="/legal" 
+              className="ml-1 text-wedding-gold/80 hover:text-wedding-gold underline transition-colors"
+            >
+              Read our Privacy Policy & Terms.
+            </Link>
+          </label>
+        </div>
+
         {/* Message */}
         <div className="mb-10">
           <LuxuryTextarea
@@ -464,41 +509,56 @@ function FormScreen({
 // ============================================================================
 // SUCCESS SCREEN
 // ============================================================================
-function SuccessScreen({ partyName }: { partyName: string }) {
+function SuccessScreen({ partyName, onBack }: { partyName: string; onBack: () => void }) {
   return (
-    <div className="text-center max-w-md">
-      {/* Checkmark icon */}
-      <div className="w-20 h-20 rounded-full border border-wedding-gold/30 flex items-center justify-center mx-auto mb-8">
-        <svg className="w-10 h-10 text-wedding-gold" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
-        </svg>
+    <div className="w-full max-w-md flex flex-col items-center">
+      {/* Back Button */}
+      <div className="w-full flex justify-start">
+        <button
+          onClick={onBack}
+          className="mb-8 font-serif text-sm tracking-wide flex items-center gap-2 text-stone-500 hover:text-stone-300 transition-colors"
+        >
+          <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
+          </svg>
+          Go Back
+        </button>
       </div>
 
-      {/* Thank you message */}
-      <h3 className="font-display text-3xl md:text-4xl mb-4 text-stone-200">
-        Thank You!
-      </h3>
-      <p className="font-serif text-lg italic leading-relaxed text-stone-400">
-        {partyName}, your response has been recorded.
-        <br />
-        We look forward to celebrating with you!
-      </p>
+      <div className="text-center">
+        {/* Checkmark icon */}
+        <div className="w-20 h-20 rounded-full border border-wedding-gold/30 flex items-center justify-center mx-auto mb-8">
+          <svg className="w-10 h-10 text-wedding-gold" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+          </svg>
+        </div>
 
-      {/* Registry note */}
-      <div className="mt-10 pt-8 border-t border-white/10">
-        <p className="font-serif text-base leading-relaxed text-stone-400 mb-6">
-          Your presence at our celebration means the world to us and is truly all we need.
-          For those who have kindly asked about gifts, we&apos;ve put together a{' '}
-          <span className="text-wedding-gold">registry</span> to help with coordination.
+        {/* Thank you message */}
+        <h3 className="font-display text-3xl md:text-4xl mb-4 text-stone-200">
+          Thank You!
+        </h3>
+        <p className="font-serif text-lg italic leading-relaxed text-stone-400">
+          {partyName}, your response has been recorded.
+          <br />
+          We look forward to celebrating with you!
         </p>
 
-        {/* Registry button - luxury gold-bordered style */}
-        <a
-          href="/#registry"
-          className="inline-block px-8 py-3 font-medium text-sm tracking-widest uppercase transition-all duration-300 border border-wedding-gold/50 text-wedding-gold rounded hover:bg-wedding-gold/10 hover:border-wedding-gold"
-        >
-          View Registry
-        </a>
+        {/* Registry note */}
+        <div className="mt-10 pt-8 border-t border-white/10">
+          <p className="font-serif text-base leading-relaxed text-stone-400 mb-6">
+            Your presence at our celebration means the world to us and is truly all we need.
+            For those who have kindly asked about gifts, we&apos;ve put together a{' '}
+            <span className="text-wedding-gold">registry</span> to help with coordination.
+          </p>
+
+          {/* Registry button - luxury gold-bordered style */}
+          <a
+            href="/#registry"
+            className="inline-block px-8 py-3 font-medium text-sm tracking-widest uppercase transition-all duration-300 border border-wedding-gold/50 text-wedding-gold rounded hover:bg-wedding-gold/10 hover:border-wedding-gold"
+          >
+            View Registry
+          </a>
+        </div>
       </div>
     </div>
   );
@@ -507,36 +567,51 @@ function SuccessScreen({ partyName }: { partyName: string }) {
 // ============================================================================
 // ALREADY RESPONDED SCREEN
 // ============================================================================
-function AlreadyRespondedScreen({ partyName }: { partyName: string }) {
+function AlreadyRespondedScreen({ partyName, onBack }: { partyName: string; onBack: () => void }) {
   return (
-    <div className="text-center max-w-md">
-      <div className="w-20 h-20 rounded-full border border-wedding-gold/30 flex items-center justify-center mx-auto mb-8">
-        <svg className="w-10 h-10 text-wedding-gold" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
-        </svg>
+    <div className="w-full max-w-md flex flex-col items-center">
+      {/* Back Button */}
+      <div className="w-full flex justify-start">
+        <button
+          onClick={onBack}
+          className="mb-8 font-serif text-sm tracking-wide flex items-center gap-2 text-stone-500 hover:text-stone-300 transition-colors"
+        >
+          <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
+          </svg>
+          Go Back
+        </button>
       </div>
 
-      <h3 className="font-display text-3xl md:text-4xl mb-4 text-stone-200">
-        Already Responded
-      </h3>
-      <p className="font-serif text-lg italic leading-relaxed text-stone-400">
-        {partyName}, we&apos;ve already received your RSVP.
-        <br />
-        Thank you for confirming!
-      </p>
+      <div className="text-center">
+        <div className="w-20 h-20 rounded-full border border-wedding-gold/30 flex items-center justify-center mx-auto mb-8">
+          <svg className="w-10 h-10 text-wedding-gold" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+          </svg>
+        </div>
 
-      {/* Registry note */}
-      <div className="mt-10 pt-8 border-t border-white/10">
-        <p className="font-serif text-base leading-relaxed text-stone-400 mb-6">
-          If you need to make changes to your response, please contact us directly.
+        <h3 className="font-display text-3xl md:text-4xl mb-4 text-stone-200">
+          Already Responded
+        </h3>
+        <p className="font-serif text-lg italic leading-relaxed text-stone-400">
+          {partyName}, we&apos;ve already received your RSVP.
+          <br />
+          Thank you for confirming!
         </p>
 
-        <a
-          href="/#registry"
-          className="inline-block px-8 py-3 font-medium text-sm tracking-widest uppercase transition-all duration-300 border border-wedding-gold/50 text-wedding-gold rounded hover:bg-wedding-gold/10 hover:border-wedding-gold"
-        >
-          View Registry
-        </a>
+        {/* Registry note */}
+        <div className="mt-10 pt-8 border-t border-white/10">
+          <p className="font-serif text-base leading-relaxed text-stone-400 mb-6">
+            If you need to make changes to your response, please contact us directly.
+          </p>
+
+          <a
+            href="/#registry"
+            className="inline-block px-8 py-3 font-medium text-sm tracking-widest uppercase transition-all duration-300 border border-wedding-gold/50 text-wedding-gold rounded hover:bg-wedding-gold/10 hover:border-wedding-gold"
+          >
+            View Registry
+          </a>
+        </div>
       </div>
     </div>
   );
@@ -598,11 +673,23 @@ export default function Rsvp() {
             )}
 
             {view === 'success' && party && (
-              <SuccessScreen partyName={party.party_name} />
+              <SuccessScreen 
+                partyName={party.party_name} 
+                onBack={() => {
+                  setView('search');
+                  setParty(null);
+                }}
+              />
             )}
 
             {view === 'already_responded' && party && (
-              <AlreadyRespondedScreen partyName={party.party_name} />
+              <AlreadyRespondedScreen 
+                partyName={party.party_name} 
+                onBack={() => {
+                  setView('search');
+                  setParty(null);
+                }}
+              />
             )}
           </div>
         </motion.div>
