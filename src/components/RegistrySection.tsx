@@ -500,7 +500,7 @@ export default function RegistrySection() {
                 {purchasedItems.map((item) => (
                   <div
                     key={item.id}
-                    className="relative rounded-lg overflow-hidden border border-hairline bg-ink/5 opacity-50"
+                    className="relative rounded-lg overflow-hidden border border-hairline bg-ink/5"
                   >
                     <div className="aspect-square bg-ink/5 relative">
                       {item.image_url ? (
@@ -508,7 +508,7 @@ export default function RegistrySection() {
                         <img
                           src={item.image_url}
                           alt={item.name}
-                          className="w-full h-full object-cover grayscale"
+                          className="w-full h-full object-cover grayscale blur-sm scale-110"
                         />
                       ) : (
                         <div className="w-full h-full flex items-center justify-center text-ink/10">
@@ -517,8 +517,10 @@ export default function RegistrySection() {
                           </svg>
                         </div>
                       )}
-                      <div className="absolute inset-0 bg-surface/40 flex items-center justify-center">
-                        <span className={`text-ink/70 text-xs ${isAmharic ? 'font-ethiopic' : 'font-serif'}`}>{t('registry.gifted')}</span>
+                      <div className="absolute inset-0 bg-surface/50 flex items-center justify-center">
+                        <span className={`bg-luxury-black/80 text-wedding-gold text-[10px] sm:text-xs uppercase tracking-widest font-bold px-3 py-1.5 rounded-full ${isAmharic ? 'font-ethiopic normal-case tracking-normal' : ''}`}>
+                          {t('registry.gifted')}
+                        </span>
                       </div>
                     </div>
                     <div className="p-2">
