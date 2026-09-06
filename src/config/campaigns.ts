@@ -117,8 +117,8 @@ export const CAMPAIGNS: Campaign[] = [
     smsBody: `Thank you for celebrating with us! — Yonatan & Saron. Visit ${SITE_LINK}\n\n${COMPLIANCE_FOOTER}`,
     smsMediaUrl: PHOTO_STD,
     emailTemplate: 'GenericTemplate',
-    priority: 'email',
-    disabled: true,
+    priority: 'both',
+    disabled: false,
   },
 ];
 
