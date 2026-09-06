@@ -36,6 +36,11 @@ const BASE_URL = 'https://theestifanos.com';
 const PWD = 'Matthew19:6';
 const COMPLIANCE = 'You are subscribed to receive wedding updates. Message frequency varies. Msg & data rates may apply. Reply HELP for help, STOP to opt out.';
 
+// Campaigns whose own copy must reach an already-responded party unchanged,
+// rather than being swapped for the generic "already RSVPed" recap below —
+// each targets guests specifically because they've already responded.
+const OWN_COPY_DESPITE_RSVP_STATUS = ['declined-registry', 'day-before-alert', 'thank-you'];
+
 function buildSmsBody(campaignId: string, guestName: string, partyId: string, inviteToken?: string): string {
   const viewSuffix = campaignId === 'formal-invitation' || campaignId === 'declined-registry' || campaignId === 'day-before-alert' ? '&view=final-invite' : '';
   // The 48hr variant jumps straight to #rsvp — the original Save the Date
@@ -510,16 +515,14 @@ export async function POST(req: Request) {
         const guestName = (party.guests as { name?: string; is_attending?: boolean }[])?.[0]?.name || party.party_name || 'Friend';
         const inviteToken = (party as { invite_token?: string }).invite_token;
 
-        // If they've already RSVPed, send a tailored acknowledgment instead of the campaign message
-        // — except partial-rsvp-nudge (already-responded party with a newly added, still-pending
-        // guest), declined-registry (deliberately targets already-declined parties), and
-        // day-before-alert (a post-RSVP logistics update meant to reach confirmed guests
-        // unchanged, not get swapped for the RSVP recap), which all need their own dedicated
-        // copy instead of the generic recap.
+        // If they've already RSVPed, send a tailored acknowledgment instead of the campaign
+        // message — except partial-rsvp-nudge (already-responded party with a newly added,
+        // still-pending guest) and OWN_COPY_DESPITE_RSVP_STATUS campaigns, which need their
+        // own dedicated copy instead of the generic recap.
         let smsBody: string;
         if (campaignId === 'partial-rsvp-nudge') {
           smsBody = buildPartialRsvpNudgeSmsBody(acceptedGuestNames, pendingGuestNames, partyId, inviteToken);
-        } else if (campaignId === 'declined-registry' || campaignId === 'day-before-alert') {
+        } else if (OWN_COPY_DESPITE_RSVP_STATUS.includes(campaignId)) {
           smsBody = buildSmsBody(campaignId, guestName, partyId, inviteToken);
         } else if (party.has_responded) {
           const allGuests = party.guests as { name?: string; is_attending?: boolean; has_responded?: boolean }[];
@@ -533,7 +536,7 @@ export async function POST(req: Request) {
         }
 
         const PRAY_IMAGE = 'https://foxezhxncpzzpbemdafa.supabase.co/storage/v1/object/public/wedding-ui/prayforus.JPG';
-        const smsMediaUrl = campaignId === 'partial-rsvp-nudge' || campaignId === 'declined-registry' || campaignId === 'day-before-alert'
+        const smsMediaUrl = campaignId === 'partial-rsvp-nudge' || OWN_COPY_DESPITE_RSVP_STATUS.includes(campaignId)
           ? (campaign.smsMediaUrl || null)
           : party.has_responded ? PRAY_IMAGE : (campaign.smsMediaUrl || null);
 
